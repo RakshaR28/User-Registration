@@ -14,69 +14,69 @@ pipeline {
             }
         }
 
-        // ================= FRONTEND =================
-        stage('Install Frontend Dependencies') {
+        // ================= build =================
+        stage('Install build Dependencies') {
             steps {
-                dir('frontend') {
+                dir('build') {
                     bat 'npm install'
                 }
             }
         }
 
-        stage('Test Frontend') {
+        stage('Test build') {
             steps {
-                dir('frontend') {
+                dir('build') {
                     bat 'npm test -- --watchAll=false'
                 }
             }
         }
 
-        stage('Build Frontend') {
+        stage('Build build') {
             steps {
-                dir('frontend') {
+                dir('build') {
                     bat 'npm run build'
                 }
             }
         }
 
-        stage('Deploy Frontend to S3') {
+        stage('Deploy build to S3') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'aws-creds',
-                    usernameVariable: 'AKIAURZ2IISIPEXTLW6F',
-                    passwordVariable: 'jur0EdpxBZZ7PV0LnqkDqy5lPv6qeQ8tl2DL41YQ'
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                 )]) {
-                    dir('frontend') {
-                        bat 'aws s3 sync build/ s3://%AWS_BUCKET% --delete'
+                    dir('build') {
+                        bat 'aws s3 sync build/ s3://user-app-ui-313117918352-ap-south-2-an --delete'
                     }
                 }
             }
         }
 
-        // ================= BACKEND =================
-        stage('Build Backend') {
+        // ================= User-app =================
+        stage('Build User-app') {
             steps {
-                dir('backend') {
+                dir('User-app') {
                     bat 'mvn clean package -DskipTests'
                 }
             }
         }
 
-        stage('Test Backend') {
+        stage('Test User-app') {
             steps {
-                dir('backend') {
+                dir('User-app') {
                     bat 'mvn test'
                 }
             }
         }
 
-        stage('Deploy Backend to EC2') {
+        stage('Deploy User-app to EC2') {
             steps {
                 sshagent(['ec2-key']) {
                     bat '''
-                    scp -o StrictHostKeyChecking=no backend\\target\\*.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
+                    scp -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@18.61.201.138:/home/ec2-user/app.jar
 
-                    ssh -o StrictHostKeyChecking=no ec2-user@%EC2_IP% ^
+                    ssh -o StrictHostKeyChecking=no ec2-user@18.61.201.138 ^
                     "pkill -f app.jar || true && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
                     '''
                 }
