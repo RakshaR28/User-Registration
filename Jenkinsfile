@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_BUCKET = 'userregisteration '
+        AWS_BUCKET = 'userregisteration'
         EC2_IP = '43.205.212.99'
     }
 
@@ -70,21 +70,24 @@ pipeline {
             }
         }
 
-       stage('Deploy User-app to EC2') {
-    steps {
-        withCredentials([file(credentialsId: 'your-key', variable: 'PEM_FILE')]) {
+        stage('Deploy User-app to EC2') {
+            steps {
+                withCredentials([file(credentialsId: 'your-key', variable: 'PEM_FILE')]) {
+                    bat """
+                    REM Fix permissions on PEM file
+                    icacls "%PEM_FILE%" /inheritance:r
+                    icacls "%PEM_FILE%" /grant:r "%USERNAME%:R"
 
-            bat '''
-            icacls "%PEM_FILE%" /inheritance:r
-            icacls "%PEM_FILE%" /grant:r "%USERNAME%:R"
+                    REM Copy JAR to EC2
+                    C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
 
-            C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@43.205.212.99:/home/ec2-user/app.jar
-
-            C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@43.205.212.99 "pkill -f app.jar || true && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
-            '''
+                    REM Restart app on EC2
+                    C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
+                    """
+                }
+            }
         }
     }
-}
 
     post {
         success {
