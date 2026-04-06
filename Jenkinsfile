@@ -121,7 +121,7 @@ pipeline {
         stage('Test Frontend') {
             steps {
                 dir('frontend') {
-                    bat 'npm test -- --watchAll=false --passWithNoTests''
+                    bat 'npm test -- --watchAll=false --passWithNoTests'
                 }
             }
         }
