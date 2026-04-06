@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -15,7 +14,7 @@ pipeline {
             }
         }
 
-        // ================= build =================
+        // ================= Frontend =================
         stage('Install build Dependencies') {
             steps {
                 dir('frontend') {
@@ -32,7 +31,7 @@ pipeline {
             }
         }
 
-        stage('Build build') {
+        stage('Build frontend') {
             steps {
                 dir('frontend') {
                     bat 'npm run build'
@@ -40,7 +39,7 @@ pipeline {
             }
         }
 
-        stage('Deploy build to S3') {
+        stage('Deploy frontend to S3') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'aws-creds',
@@ -48,13 +47,13 @@ pipeline {
                     passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                 )]) {
                     dir('frontend') {
-                        bat 'aws s3 sync build/ s3://user-app-ui-313117918352-ap-south-2-an --delete'
+                        bat 'aws s3 sync build/ s3://%AWS_BUCKET% --delete'
                     }
                 }
             }
         }
 
-        // ================= User-app =================
+        // ================= Backend =================
         stage('Build User-app') {
             steps {
                 dir('User-app') {
@@ -71,17 +70,18 @@ pipeline {
             }
         }
 
-       stage('Deploy User-app to EC2') {
-    steps {
-        sshagent(['ec2-key']) {
-            bat """
-            scp -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@18.61.201.138::/home/ec2-user/app.jar
+        stage('Deploy User-app to EC2') {
+            steps {
+                sshagent(['ec2-key']) {
+                    bat """
+                    scp -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
 
-            ssh -o StrictHostKeyChecking=no ec2-user@18.61.201.138: "pkill -f app.jar || true; nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
-            """
+                    ssh -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true & nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
+                    """
+                }
+            }
         }
     }
-}
 
     post {
         success {
