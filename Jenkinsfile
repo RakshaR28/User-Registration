@@ -39,7 +39,7 @@ pipeline {
             }
         }
 
-        stage('Deploy build to S3') {
+     /*   stage('Deploy build to S3') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'aws-creds',
@@ -82,7 +82,7 @@ pipeline {
                 }
             }
         }
-    }
+    }*/
 
     post {
         success {
