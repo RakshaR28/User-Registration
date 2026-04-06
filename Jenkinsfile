@@ -71,17 +71,17 @@ pipeline {
             }
         }
 
-        stage('Deploy User-app to EC2') {
-            steps {
-                
-         bat """
-          C:\\Windows\\System32\\OpenSSH\\scp.exe -i C:\\keys\\user-registerkey.pem -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@18.61.201.138:/home/ec2-user/app.jar
+       stage('Deploy User-app to EC2') {
+    steps {
+        sshagent(['ec2-key']) {
+            bat """
+            scp -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@18.61.201.138::/home/ec2-user/app.jar
 
-          C:\\Windows\\System32\\OpenSSH\\ssh.exe -i C:\\keys\\user-registerkey.pem -o StrictHostKeyChecking=no ec2-user@18.61.201.138 "pkill -f app.jar || exit 0 && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
-          """         
-            }
+            ssh -o StrictHostKeyChecking=no ec2-user@18.61.201.138: "pkill -f app.jar || true; nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
+            """
         }
     }
+}
 
     post {
         success {
