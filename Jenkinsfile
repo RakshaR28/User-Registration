@@ -26,7 +26,7 @@ pipeline {
         stage('Test build') {
             steps {
                 dir('frontend') {
-                    bat 'npm test -- --watchAll=false --passWithNoTests''
+                    bat 'npm test -- --watchAll=false --passWithNoTests'
                 }
             }
         }
