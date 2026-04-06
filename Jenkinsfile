@@ -72,7 +72,7 @@ pipeline {
 
         stage('Deploy User-app to EC2') {
             steps {
-                withCredentials([file(credentialsId: 'your-key', variable: 'PEM_FILE')]) {
+                withCredentials([file(credentialsId: 'ec2-key', variable: 'PEM_FILE')]) {
                     bat """
                     REM Fix permissions on PEM file
                     icacls "%PEM_FILE%" /inheritance:r
