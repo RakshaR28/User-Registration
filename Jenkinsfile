@@ -1,5 +1,5 @@
-bat 'dir C:\\keys'
-/*pipeline {
+
+pipeline {
     agent any
 
     environment {
@@ -73,14 +73,14 @@ bat 'dir C:\\keys'
 
         stage('Deploy User-app to EC2') {
             steps {
-                sshagent(['ec2-key']) {
+                
                   bat '''
 scp -i C:\keys\user-registerkey.pem -o StrictHostKeyChecking=no User-app/target/*.jar ec2-user@18.61.201.138:/home/ec2-user/app.jar
 
 ssh -i C:\keys\user-registerkey.pem -o StrictHostKeyChecking=no ec2-user@18.61.201.138 ^
 "pkill -f app.jar || true && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
 '''
-                }
+                
             }
         }
     }
