@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080/users";
+const BASE_URL = "http://18.61.201.138:8080/users";
 
 // CREATE USER
 export const saveUser = async (userData) => {
