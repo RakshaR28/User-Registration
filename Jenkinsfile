@@ -70,18 +70,18 @@ pipeline {
             }
         }
 
-        stage('Deploy User-app to EC2') {
-            steps {
-                sshagent(['ec2-key']) {
-                    bat """
-                    scp -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
+      stage('Deploy User-app to EC2') {
+    steps {
+        withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
+            bat """
+            scp -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
 
-                    ssh -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true & nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
-                    """
-                }
-            }
+            ssh -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true & nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
+            """
         }
     }
+}
+
 
     post {
         success {
