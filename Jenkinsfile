@@ -74,9 +74,9 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
                     bat """
-                    REM Fix permissions on PEM file
-                    icacls "%PEM_FILE%" /inheritance:r
-                    icacls "%PEM_FILE%" /grant:r "%USERNAME%:R"
+                   icacls "%PEM_FILE%" /inheritance:r
+                   icacls "%PEM_FILE%" /grant:r "SYSTEM:R"
+                   icacls "%PEM_FILE%" /grant:r "Administrators:R"
 
                     REM Copy JAR to EC2
                     C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
