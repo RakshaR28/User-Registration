@@ -1,4 +1,4 @@
-/*pipeline {
+pipeline {
     agent any
 
     environment {
@@ -17,7 +17,7 @@
         // ================= build =================
         stage('Install build Dependencies') {
             steps {
-                dir('build') {
+                dir('frontend') {
                     bat 'npm install'
                 }
             }
@@ -25,7 +25,7 @@
 
         stage('Test build') {
             steps {
-                dir('build') {
+                dir('frontend') {
                     bat 'npm test -- --watchAll=false --passWithNoTests''
                 }
             }
@@ -33,20 +33,20 @@
 
         stage('Build build') {
             steps {
-                dir('build') {
+                dir('frontend') {
                     bat 'npm run build'
                 }
             }
         }
 
-     /*   stage('Deploy build to S3') {
+        stage('Deploy build to S3') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'aws-creds',
                     usernameVariable: 'AWS_ACCESS_KEY_ID',
                     passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                 )]) {
-                    dir('build') {
+                    dir('frontend') {
                         bat 'aws s3 sync build/ s3://user-app-ui-313117918352-ap-south-2-an --delete'
                     }
                 }
@@ -92,8 +92,8 @@
             echo 'Pipeline Failed!'
         }
     }
-}*/
-pipeline {
+}
+/*pipeline {
     agent any
 
     environment {
@@ -160,4 +160,4 @@ pipeline {
             echo 'CI FAILED: Check logs'
         }
     }
-}
+}*/
