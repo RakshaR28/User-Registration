@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AWS_BUCKET = 'user-app-ui-313117918352-ap-south-2-an'
-        EC2_IP = '18.61.201.138'
+        EC2_IP = '43.205.212.99'
     }
 
     stages {
@@ -78,9 +78,9 @@ pipeline {
             icacls "%PEM_FILE%" /inheritance:r
             icacls "%PEM_FILE%" /grant:r "%USERNAME%:R"
 
-            C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@18.61.201.138:/home/ec2-user/app.jar
+            C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@43.205.212.99:/home/ec2-user/app.jar
 
-            C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@18.61.201.138 "pkill -f app.jar || true && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
+            C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@43.205.212.99 "pkill -f app.jar || true && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
             '''
         }
     }
