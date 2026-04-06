@@ -70,19 +70,21 @@ pipeline {
             }
         }
 
-        stage('Deploy User-app to EC2') {
-            steps {
-                withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
-                   bat """
-                   C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
+       stage('Deploy User-app to EC2') {
+    steps {
+        withCredentials([file(credentialsId: 'your-key', variable: 'PEM_FILE')]) {
 
-                   C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
-                   """
+            bat '''
+            icacls "%PEM_FILE%" /inheritance:r
+            icacls "%PEM_FILE%" /grant:r "%USERNAME%:R"
 
-                }
-            }
+            C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@18.61.201.138:/home/ec2-user/app.jar
+
+            C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@18.61.201.138 "pkill -f app.jar || true && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
+            '''
         }
     }
+}
 
     post {
         success {
