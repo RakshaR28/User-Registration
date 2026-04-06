@@ -1,4 +1,5 @@
-pipeline {
+bat 'dir C:\\keys'
+/*pipeline {
     agent any
 
     environment {
