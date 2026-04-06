@@ -1,4 +1,4 @@
-pipeline {
+/*pipeline {
     agent any
 
     environment {
@@ -91,5 +91,73 @@ pipeline {
         failure {
             echo 'Pipeline Failed!'
         }
-    }*/
+    }
+}*/
+pipeline {
+    agent any
+
+    environment {
+        AWS_BUCKET = 'user-app-ui-313117918352-ap-south-2-an'
+        EC2_IP = '18.61.201.138'
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/RakshaR28/User-Registration.git'
+            }
+        }
+
+        // ================= FRONTEND =================
+        stage('Install Frontend Dependencies') {
+            steps {
+                dir('frontend') {   // FIXED
+                    bat 'npm install'
+                }
+            }
+        }
+
+        stage('Test Frontend') {
+            steps {
+                dir('frontend') {
+                    bat 'npm test -- --watchAll=false'
+                }
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    bat 'npm run build'
+                }
+            }
+        }
+
+        // ================= User-app =================
+        stage('Build User-app') {
+            steps {
+                dir('User-app') {   // FIXED (ensure folder name matches repo)
+                    bat 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Test User-app') {
+            steps {
+                dir('User-app') {
+                    bat 'mvn test'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI SUCCESS: Build & Tests Passed'
+        }
+        failure {
+            echo 'CI FAILED: Check logs'
+        }
+    }
 }
