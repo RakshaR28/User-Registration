@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_BUCKET = 'user-app-ui-313117918352-ap-south-2-an'
+        AWS_BUCKET = 'userregisteration '
         EC2_IP = '43.205.212.99'
     }
 
