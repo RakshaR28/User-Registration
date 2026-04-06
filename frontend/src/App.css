@@ -1,0 +1,149 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Background */
+body {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  min-height: 100vh;
+}
+
+/* Layout container */
+.app-container {
+  display: flex;
+  gap: 30px;
+  padding: 40px;
+  align-items: flex-start;
+}
+
+/* FORM SECTION */
+.form-section {
+  flex: 1;
+  background: #f5f5dc; /* ✅ beige instead of white */
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* LIST SECTION */
+.list-section {
+  flex: 1;
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Titles */
+h2, h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Section headers (Address blocks) */
+.section-title {
+  margin: 20px 0 10px;
+  font-weight: 600;
+  color: #555;
+}
+
+/* ✅ Address container (side-by-side layout) */
+.address-container {
+  display: flex;
+  gap: 20px;
+}
+
+/* Each address block */
+.address-block-form {
+  flex: 1;
+}
+
+/* Inputs */
+form input,
+form select {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+/* Focus */
+form input:focus,
+form select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+  outline: none;
+}
+
+/* Checkbox container */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.checkbox-container input {
+  width: auto;
+}
+
+/* Button */
+button {
+  width: 100%;
+  padding: 12px;
+  background: #667eea;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #5a67d8;
+}
+
+/* Messages */
+p {
+  margin-top: 15px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Error messages */
+.error {
+  color: red;
+  font-size: 12px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* USER LIST */
+.list-section ul {
+  list-style: none;
+}
+
+.list-section li {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.list-section li strong {
+  color: #333;
+}
+
+/* Address block in list */
+.address-block {
+  margin-left: 10px;
+  font-size: 13px;
+  color: #555;
+}
