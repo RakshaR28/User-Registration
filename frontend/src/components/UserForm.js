@@ -19,7 +19,7 @@ const UserForm = ({ onUserSaved }) => {
 
     current: {
       addressLine1: "",
-      addressLine2: "", // ✅ ADDED
+      addressLine2: "",
       city: "",
       state: "",
       countryCode: "IN",
@@ -28,7 +28,7 @@ const UserForm = ({ onUserSaved }) => {
 
     permanent: {
       addressLine1: "",
-      addressLine2: "", // ✅ ADDED
+      addressLine2: "",
       city: "",
       state: "",
       countryCode: "IN",
@@ -39,7 +39,6 @@ const UserForm = ({ onUserSaved }) => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
 
-  // ✅ FIXED for nested fields
   const handleAlphaChange = (e, type = null) => {
     const { name, value } = e.target;
 
@@ -80,6 +79,7 @@ const UserForm = ({ onUserSaved }) => {
 
   const handlePostalChange = (e, type) => {
     const { name, value } = e.target;
+
     if (postalRegex.test(value)) {
       setFormData((prev) => ({
         ...prev,
@@ -141,7 +141,11 @@ const UserForm = ({ onUserSaved }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+
+    if (!validate()) {
+      setMessage("Please fix validation errors");
+      return;
+    }
 
     const addresses = [
       { ...formData.current, addressType: "CURRENT" }
@@ -194,7 +198,6 @@ const UserForm = ({ onUserSaved }) => {
       });
 
       setErrors({});
-
       if (onUserSaved) onUserSaved();
     } catch (err) {
       setMessage("Error saving user");
@@ -207,13 +210,13 @@ const UserForm = ({ onUserSaved }) => {
 
       <form onSubmit={handleSubmit}>
 
-        {/* USER DETAILS */}
         <input
           name="firstName"
           placeholder="First Name *"
           value={formData.firstName}
           onChange={handleAlphaChange}
         />
+        {errors.firstName && <p className="error">{errors.firstName}</p>}
 
         <input
           name="lastName"
@@ -221,6 +224,7 @@ const UserForm = ({ onUserSaved }) => {
           value={formData.lastName}
           onChange={handleAlphaChange}
         />
+        {errors.lastName && <p className="error">{errors.lastName}</p>}
 
         <input
           name="email"
@@ -228,11 +232,10 @@ const UserForm = ({ onUserSaved }) => {
           value={formData.email}
           onChange={(e) => handleChange(e)}
         />
+        {errors.email && <p className="error">{errors.email}</p>}
 
-        {/* ADDRESS SECTION */}
         <div className="address-container">
 
-          {/* CURRENT */}
           <div className="address-block">
             <h3>Current Address *</h3>
 
@@ -242,6 +245,7 @@ const UserForm = ({ onUserSaved }) => {
               value={formData.current.addressLine1}
               onChange={(e) => handleChange(e, "current")}
             />
+            {errors["current.addressLine1"] && <p className="error">{errors["current.addressLine1"]}</p>}
 
             <input
               name="addressLine2"
@@ -256,6 +260,7 @@ const UserForm = ({ onUserSaved }) => {
               value={formData.current.city}
               onChange={(e) => handleAlphaChange(e, "current")}
             />
+            {errors["current.city"] && <p className="error">{errors["current.city"]}</p>}
 
             <input
               name="state"
@@ -263,6 +268,7 @@ const UserForm = ({ onUserSaved }) => {
               value={formData.current.state}
               onChange={(e) => handleAlphaChange(e, "current")}
             />
+            {errors["current.state"] && <p className="error">{errors["current.state"]}</p>}
 
             <select
               name="countryCode"
@@ -282,9 +288,9 @@ const UserForm = ({ onUserSaved }) => {
               value={formData.current.postalCode}
               onChange={(e) => handlePostalChange(e, "current")}
             />
+            {errors["current.postalCode"] && <p className="error">{errors["current.postalCode"]}</p>}
           </div>
 
-          {/* PERMANENT */}
           <div className="address-block">
             <h3>Permanent Address</h3>
 
