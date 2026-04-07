@@ -43,6 +43,7 @@ public class UserService {
         List<Address> addressList = request.getAddresses().stream().map(addrReq -> {
             Address addr = new Address();
             addr.setAddressLine1(addrReq.getAddressLine1());
+            addr.setAddressLine2(addrReq.getAddressLine2());
             addr.setCity(addrReq.getCity());
             addr.setState(addrReq.getState());
             addr.setCountryCode(addrReq.getCountryCode());
