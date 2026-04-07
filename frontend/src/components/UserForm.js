@@ -135,30 +135,31 @@ const UserForm = ({ onUserSaved }) => {
       newErrors["current.postalCode"] = "Postal code must be 5 digits";
     }
 
+    // ✅ FIXED: Permanent address validation
+    const isPermanentFilled =
+      formData.permanent.addressLine1 ||
+      formData.permanent.city ||
+      formData.permanent.state ||
+      formData.permanent.postalCode;
+
+    if (isPermanentFilled) {
+      if (!formData.permanent.addressLine1.trim()) {
+        newErrors["permanent.addressLine1"] = "Address is required";
+      }
+      if (!formData.permanent.city.trim()) {
+        newErrors["permanent.city"] = "City is required";
+      }
+      if (!formData.permanent.state.trim()) {
+        newErrors["permanent.state"] = "State is required";
+      }
+      if (!/^\d{5}$/.test(formData.permanent.postalCode)) {
+        newErrors["permanent.postalCode"] = "Postal code must be 5 digits";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  // Permanent address validation
-const isPermanentFilled =
-  formData.permanent.addressLine1 ||
-  formData.permanent.city ||
-  formData.permanent.state ||
-  formData.permanent.postalCode;
-
-if (isPermanentFilled) {
-  if (!formData.permanent.addressLine1.trim()) {
-    newErrors["permanent.addressLine1"] = "Address is required";
-  }
-  if (!formData.permanent.city.trim()) {
-    newErrors["permanent.city"] = "City is required";
-  }
-  if (!formData.permanent.state.trim()) {
-    newErrors["permanent.state"] = "State is required";
-  }
-  if (!/^\d{5}$/.test(formData.permanent.postalCode)) {
-    newErrors["permanent.postalCode"] = "Postal code must be 5 digits";
-  }
-}
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -172,12 +173,14 @@ if (isPermanentFilled) {
       { ...formData.current, addressType: "CURRENT" }
     ];
 
-    if (
+    // ✅ FIXED: Only send if fully complete
+    const isPermanentComplete =
       formData.permanent.addressLine1 &&
       formData.permanent.city &&
       formData.permanent.state &&
-      /^\d{5}$/.test(formData.permanent.postalCode)
-    ) {
+      /^\d{5}$/.test(formData.permanent.postalCode);
+
+    if (isPermanentComplete) {
       addresses.push({
         ...formData.permanent,
         addressType: "PERMANENT"
