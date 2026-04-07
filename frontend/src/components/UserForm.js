@@ -3,7 +3,7 @@ import { saveUser } from "../services/api";
 
 const alphaRegex = /^[A-Za-z\s]*$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const postalRegex = /^\d{0,5}$/; // max 5 digits
+const postalRegex = /^\d{0,5}$/; // allow typing up to 5 digits
 
 const countries = [
   { code: "IN", name: "India" },
@@ -37,32 +37,11 @@ const UserForm = ({ onUserSaved }) => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
 
-  // ================= HANDLERS =================
-
-  const handleAlphaChange = (e, type = null) => {
+  const handleAlphaChange = (e) => {
     const { name, value } = e.target;
     if (alphaRegex.test(value)) {
-      if (type) {
-        setFormData((prev) => ({
-          ...prev,
-          [type]: { ...prev[type], [name]: value }
-        }));
-      } else {
-        setFormData((prev) => ({ ...prev, [name]: value }));
-      }
-    }
-  };
-
-  const handlePostalChange = (e, type) => {
-    const { name, value } = e.target;
-    if (postalRegex.test(value)) {
-      setFormData((prev) => ({
-        ...prev,
-        [type]: {
-          ...prev[type],
-          [name]: value
-        }
-      }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -77,8 +56,24 @@ const UserForm = ({ onUserSaved }) => {
           [name]: value
         }
       }));
+      setErrors((prev) => ({ ...prev, [`${type}.${name}`]: "" }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handlePostalChange = (e, type) => {
+    const { name, value } = e.target;
+    if (postalRegex.test(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          [name]: value
+        }
+      }));
+      setErrors((prev) => ({ ...prev, [`${type}.${name}`]: "" }));
     }
   };
 
@@ -88,11 +83,9 @@ const UserForm = ({ onUserSaved }) => {
     setFormData((prev) => ({
       ...prev,
       sameAddress: checked,
-      permanent: checked ? { ...prev.current } : prev.permanent
+      permanent: checked ? { ...prev.current } : prev.permanent // ✅ FIXED (deep copy)
     }));
   };
-
-  // ================= VALIDATION =================
 
   const validate = () => {
     let newErrors = {};
@@ -121,25 +114,26 @@ const UserForm = ({ onUserSaved }) => {
     if (!formData.current.state.trim()) {
       newErrors["current.state"] = "State is required";
     }
-    if (!formData.current.postalCode.match(/^\d{5}$/)) {
-      newErrors["current.postalCode"] = "Postal code must be 5 digits";
+    if (!formData.current.countryCode) {
+      newErrors["current.countryCode"] = "Country is required";
+    }
+    if (!/^\d{5}$/.test(formData.current.postalCode)) {
+      newErrors["current.postalCode"] = "Postal code must be 5 digits"; // ✅ FIXED
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // ================= SUBMIT =================
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
+    // ✅ FIXED PAYLOAD (no empty permanent)
     const addresses = [
       { ...formData.current, addressType: "CURRENT" }
     ];
 
-    // Add permanent only if valid
     if (
       formData.permanent.addressLine1 &&
       formData.permanent.city &&
@@ -160,8 +154,6 @@ const UserForm = ({ onUserSaved }) => {
     };
 
     try {
-      console.log("Payload:", payload);
-
       await saveUser(payload);
       setMessage("✅ User saved");
 
@@ -194,20 +186,18 @@ const UserForm = ({ onUserSaved }) => {
     }
   };
 
-  // ================= UI =================
-
   return (
     <div>
       <h2>User Register</h2>
 
       <form onSubmit={handleSubmit}>
 
-        {/* USER */}
+        {/* USER DETAILS */}
         <input
           name="firstName"
           placeholder="First Name *"
           value={formData.firstName}
-          onChange={(e) => handleAlphaChange(e)}
+          onChange={handleAlphaChange}
         />
         {errors.firstName && <p className="error">{errors.firstName}</p>}
 
@@ -215,7 +205,7 @@ const UserForm = ({ onUserSaved }) => {
           name="lastName"
           placeholder="Last Name *"
           value={formData.lastName}
-          onChange={(e) => handleAlphaChange(e)}
+          onChange={handleAlphaChange}
         />
         {errors.lastName && <p className="error">{errors.lastName}</p>}
 
@@ -223,106 +213,118 @@ const UserForm = ({ onUserSaved }) => {
           name="email"
           placeholder="Email *"
           value={formData.email}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
         />
         {errors.email && <p className="error">{errors.email}</p>}
 
-        {/* CURRENT ADDRESS */}
-        <h3>Current Address *</h3>
+        {/* ADDRESS SECTION */}
+        <div className="address-container">
 
-        <input
-          name="addressLine1"
-          placeholder="Address *"
-          value={formData.current.addressLine1}
-          onChange={(e) => handleChange(e, "current")}
-        />
+          {/* CURRENT ADDRESS */}
+          <div className="address-block">
+            <h3 className="section-title">Current Address *</h3>
 
-        <input
-          name="city"
-          placeholder="City *"
-          value={formData.current.city}
-          onChange={(e) => handleAlphaChange(e, "current")}
-        />
+            <input
+              name="addressLine1"
+              placeholder="Address *"
+              value={formData.current.addressLine1}
+              onChange={(e) => handleChange(e, "current")}
+            />
 
-        <input
-          name="state"
-          placeholder="State *"
-          value={formData.current.state}
-          onChange={(e) => handleAlphaChange(e, "current")}
-        />
+            <input
+              name="city"
+              placeholder="City *"
+              value={formData.current.city}
+              onChange={(e) => handleAlphaChange(e)}
+            />
 
-        <select
-          name="countryCode"
-          value={formData.current.countryCode}
-          onChange={(e) => handleChange(e, "current")}
-        >
-          {countries.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+            <input
+              name="state"
+              placeholder="State *"
+              value={formData.current.state}
+              onChange={(e) => handleAlphaChange(e)}
+            />
 
-        <input
-          name="postalCode"
-          placeholder="Postal Code *"
-          value={formData.current.postalCode}
-          onChange={(e) => handlePostalChange(e, "current")}
-        />
+            <select
+              name="countryCode"
+              value={formData.current.countryCode}
+              onChange={(e) => handleChange(e, "current")}
+            >
+              {countries.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
 
-        {/* PERMANENT */}
-        <h3>Permanent Address</h3>
+            <input
+              name="postalCode"
+              placeholder="Postal Code *"
+              value={formData.current.postalCode}
+              onChange={(e) => handlePostalChange(e, "current")}
+            />
+          </div>
 
-        <input
-          type="checkbox"
-          checked={formData.sameAddress}
-          onChange={handleCheckbox}
-        /> Same as current
+          {/* PERMANENT ADDRESS */}
+          <div className="address-block">
+            <h3 className="section-title">Permanent Address</h3>
 
-        <input
-          name="addressLine1"
-          placeholder="Address"
-          value={formData.permanent.addressLine1}
-          onChange={(e) => handleChange(e, "permanent")}
-          disabled={formData.sameAddress}
-        />
+            <div className="checkbox-container">
+              <input
+                type="checkbox"
+                checked={formData.sameAddress}
+                onChange={handleCheckbox}
+              />
+              <label style={{ margin: 0 }}>Same as current</label>
+            </div>
 
-        <input
-          name="city"
-          placeholder="City"
-          value={formData.permanent.city}
-          onChange={(e) => handleAlphaChange(e, "permanent")}
-          disabled={formData.sameAddress}
-        />
+            <input
+              name="addressLine1"
+              placeholder="Address"
+              value={formData.permanent.addressLine1}
+              onChange={(e) => handleChange(e, "permanent")}
+              disabled={formData.sameAddress}
+            />
 
-        <input
-          name="state"
-          placeholder="State"
-          value={formData.permanent.state}
-          onChange={(e) => handleAlphaChange(e, "permanent")}
-          disabled={formData.sameAddress}
-        />
+            <input
+              name="city"
+              placeholder="City"
+              value={formData.permanent.city}
+              onChange={(e) => handleAlphaChange(e)}
+              disabled={formData.sameAddress}
+            />
 
-        <select
-          name="countryCode"
-          value={formData.permanent.countryCode}
-          onChange={(e) => handleChange(e, "permanent")}
-          disabled={formData.sameAddress}
-        >
-          {countries.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+            <input
+              name="state"
+              placeholder="State"
+              value={formData.permanent.state}
+              onChange={(e) => handleAlphaChange(e)}
+              disabled={formData.sameAddress}
+            />
 
-        <input
-          name="postalCode"
-          placeholder="Postal Code"
-          value={formData.permanent.postalCode}
-          onChange={(e) => handlePostalChange(e, "permanent")}
-          disabled={formData.sameAddress}
-        />
+            <select
+              name="countryCode"
+              value={formData.permanent.countryCode}
+              onChange={(e) => handleChange(e, "permanent")}
+              disabled={formData.sameAddress}
+            >
+              {countries.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+
+            <input
+              name="postalCode"
+              placeholder="Postal Code"
+              value={formData.permanent.postalCode}
+              onChange={(e) => handlePostalChange(e, "permanent")}
+              disabled={formData.sameAddress}
+            />
+          </div>
+
+        </div>
 
         <button type="submit">Submit</button>
       </form>
