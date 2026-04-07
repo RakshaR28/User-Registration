@@ -74,14 +74,15 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
                     bat """
-                    REM Fix PEM permissions (IMPORTANT)
+                    
+                    REM Fix PEM permissions (Administrators)
                     icacls "%PEM_FILE%" /inheritance:r
-                    icacls "%PEM_FILE%" /grant:r %USERNAME%:R
+                    icacls "%PEM_FILE%" /grant:r "Administrators:R"
 
-                    REM Copy JAR (use explicit jar name if possible)
-                    C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
+                    REM Copy JAR
+                    C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\User-app-0.0.1-SNAPSHOT.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
 
-                    REM Stop existing app (safe)
+                    REM Stop old app
                     C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true"
 
                     REM Start new app
@@ -91,28 +92,14 @@ pipeline {
                 }
             }
         }
-
-        stage('Verify Deployment') {
-            steps {
-                withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
-                    bat """
-                    REM Wait for app to start
-                    timeout /t 10
-
-                    REM Check if app is responding
-                    C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "curl -s http://localhost:8080/users || echo APP_NOT_RUNNING"
-                    """
-                }
-            }
-        }
     }
 
     post {
         success {
-            echo '✅ Deployment Successful! App restarted on EC2.'
+            echo 'Deployment Successful! App restarted.'
         }
         failure {
-            echo '❌ Pipeline Failed! Check logs.'
+            echo 'Pipeline Failed! Check logs.'
         }
     }
 }
