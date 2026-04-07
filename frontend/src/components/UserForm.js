@@ -326,7 +326,7 @@ const UserForm = ({ onUserSaved }) => {
 
             <input
               name="addressLine1"
-              placeholder="Address"
+              placeholder="Address Line 1*"
               value={formData.permanent.addressLine1}
               onChange={(e) => handleChange(e, "permanent")}
               disabled={formData.sameAddress}
@@ -342,7 +342,7 @@ const UserForm = ({ onUserSaved }) => {
 
             <input
               name="city"
-              placeholder="City"
+              placeholder="City*"
               value={formData.permanent.city}
               onChange={(e) => handleAlphaChange(e, "permanent")}
               disabled={formData.sameAddress}
@@ -350,7 +350,7 @@ const UserForm = ({ onUserSaved }) => {
 
             <input
               name="state"
-              placeholder="State"
+              placeholder="State*"
               value={formData.permanent.state}
               onChange={(e) => handleAlphaChange(e, "permanent")}
               disabled={formData.sameAddress}
@@ -371,7 +371,7 @@ const UserForm = ({ onUserSaved }) => {
 
             <input
               name="postalCode"
-              placeholder="Postal Code"
+              placeholder="Postal Code*"
               value={formData.permanent.postalCode}
               onChange={(e) => handlePostalChange(e, "permanent")}
               disabled={formData.sameAddress}
