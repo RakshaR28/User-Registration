@@ -143,7 +143,7 @@ const UserForm = ({ onUserSaved }) => {
     e.preventDefault();
 
     if (!validate()) {
-      setMessage("Please fix validation errors");
+      setMessage("Please enter the mandatory fields");
       return;
     }
 
