@@ -15,7 +15,7 @@ pipeline {
         }
 
         // ================= Frontend =================
-        stage('Install build Dependencies') {
+        stage('Install Dependencies') {
             steps {
                 dir('frontend') {
                     bat 'npm install'
@@ -23,7 +23,7 @@ pipeline {
             }
         }
 
-        stage('Test build') {
+        stage('Test Frontend') {
             steps {
                 dir('frontend') {
                     bat 'npm test -- --watchAll=false --passWithNoTests'
@@ -31,7 +31,7 @@ pipeline {
             }
         }
 
-        stage('Build frontend') {
+        stage('Build Frontend') {
             steps {
                 dir('frontend') {
                     bat 'npm run build'
@@ -39,7 +39,7 @@ pipeline {
             }
         }
 
-        stage('Deploy frontend to S3') {
+        stage('Deploy Frontend to S3') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'aws-creds',
@@ -54,7 +54,7 @@ pipeline {
         }
 
         // ================= Backend =================
-        stage('Build User-app') {
+        stage('Build Backend') {
             steps {
                 dir('User-app') {
                     bat 'mvn clean package -DskipTests'
@@ -62,7 +62,7 @@ pipeline {
             }
         }
 
-        stage('Test User-app') {
+        stage('Test Backend') {
             steps {
                 dir('User-app') {
                     bat 'mvn test'
@@ -70,19 +70,37 @@ pipeline {
             }
         }
 
-        stage('Deploy User-app to EC2') {
+        stage('Deploy Backend to EC2') {
             steps {
                 withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
                     bat """
-                   icacls "%PEM_FILE%" /inheritance:r
-                   icacls "%PEM_FILE%" /grant:r "SYSTEM:R"
-                   icacls "%PEM_FILE%" /grant:r "Administrators:R"
+                    REM Fix PEM permissions (IMPORTANT)
+                    icacls "%PEM_FILE%" /inheritance:r
+                    icacls "%PEM_FILE%" /grant:r %USERNAME%:R
 
-                    REM Copy JAR to EC2
+                    REM Copy JAR (use explicit jar name if possible)
                     C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\*.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
 
-                    REM Restart app on EC2
-                    C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true && nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
+                    REM Stop existing app (safe)
+                    C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true"
+
+                    REM Start new app
+                    C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
+
+                    """
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
+                    bat """
+                    REM Wait for app to start
+                    timeout /t 10
+
+                    REM Check if app is responding
+                    C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "curl -s http://localhost:8080/users || echo APP_NOT_RUNNING"
                     """
                 }
             }
@@ -91,10 +109,10 @@ pipeline {
 
     post {
         success {
-            echo 'Deployment Successful!'
+            echo '✅ Deployment Successful! App restarted on EC2.'
         }
         failure {
-            echo 'Pipeline Failed!'
+            echo '❌ Pipeline Failed! Check logs.'
         }
     }
 }
