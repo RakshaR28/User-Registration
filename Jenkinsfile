@@ -79,6 +79,18 @@ pipeline {
                     icacls "%PEM_FILE%" /inheritance:r
                     icacls "%PEM_FILE%" /grant:r "Administrators:R"
 
+                     IF "%ROLLBACK_VERSION%"=="" (
+                echo Deploying NEW version
+
+                set VERSION=app-%BUILD_NUMBER%.jar
+
+                C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\User-app-0.0.1-SNAPSHOT.jar ec2-user@%EC2_IP%:/home/ec2-user/%VERSION%
+
+            ) ELSE (
+                echo Rolling back to %ROLLBACK_VERSION%
+                set VERSION=%ROLLBACK_VERSION%
+            )
+
                     REM Copy JAR
                     C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\User-app-0.0.1-SNAPSHOT.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
 
