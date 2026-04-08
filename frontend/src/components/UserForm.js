@@ -119,6 +119,7 @@ const UserForm = ({ onUserSaved }) => {
       newErrors.email = "Invalid email format";
     }
 
+    // Current Address
     if (!formData.current.addressLine1.trim()) {
       newErrors["current.addressLine1"] = "Address is required";
     }
@@ -135,27 +136,22 @@ const UserForm = ({ onUserSaved }) => {
       newErrors["current.postalCode"] = "Postal code must be 5 digits";
     }
 
-    // ✅ FIX: respect sameAddress
+    // ✅ FIX: Permanent behaves exactly like current when unchecked
     if (!formData.sameAddress) {
-      const isPermanentFilled =
-        formData.permanent.addressLine1 ||
-        formData.permanent.city ||
-        formData.permanent.state ||
-        formData.permanent.postalCode;
-
-      if (isPermanentFilled) {
-        if (!formData.permanent.addressLine1.trim()) {
-          newErrors["permanent.addressLine1"] = "Address is required";
-        }
-        if (!formData.permanent.city.trim()) {
-          newErrors["permanent.city"] = "City is required";
-        }
-        if (!formData.permanent.state.trim()) {
-          newErrors["permanent.state"] = "State is required";
-        }
-        if (!/^\d{5}$/.test(formData.permanent.postalCode)) {
-          newErrors["permanent.postalCode"] = "Postal code must be 5 digits";
-        }
+      if (!formData.permanent.addressLine1.trim()) {
+        newErrors["permanent.addressLine1"] = "Address is required";
+      }
+      if (!formData.permanent.city.trim()) {
+        newErrors["permanent.city"] = "City is required";
+      }
+      if (!formData.permanent.state.trim()) {
+        newErrors["permanent.state"] = "State is required";
+      }
+      if (!formData.permanent.countryCode) {
+        newErrors["permanent.countryCode"] = "Country is required";
+      }
+      if (!/^\d{5}$/.test(formData.permanent.postalCode)) {
+        newErrors["permanent.postalCode"] = "Postal code must be 5 digits";
       }
     }
 
@@ -175,25 +171,16 @@ const UserForm = ({ onUserSaved }) => {
       { ...formData.current, addressType: "CURRENT" }
     ];
 
-    // ✅ FIX: handle sameAddress correctly
     if (formData.sameAddress) {
       addresses.push({
         ...formData.current,
         addressType: "PERMANENT"
       });
     } else {
-      const isPermanentComplete =
-        formData.permanent.addressLine1 &&
-        formData.permanent.city &&
-        formData.permanent.state &&
-        /^\d{5}$/.test(formData.permanent.postalCode);
-
-      if (isPermanentComplete) {
-        addresses.push({
-          ...formData.permanent,
-          addressType: "PERMANENT"
-        });
-      }
+      addresses.push({
+        ...formData.permanent,
+        addressType: "PERMANENT"
+      });
     }
 
     const payload = {
@@ -271,128 +258,47 @@ const UserForm = ({ onUserSaved }) => {
 
           <div className="address-block">
             <h3>Current Address *</h3>
-
-            <input
-              name="addressLine1"
-              placeholder="Address Line 1*"
-              value={formData.current.addressLine1}
-              onChange={(e) => handleChange(e, "current")}
-            />
+            <input name="addressLine1" placeholder="Address Line 1*" value={formData.current.addressLine1} onChange={(e) => handleChange(e, "current")} />
             {errors["current.addressLine1"] && <p className="error">{errors["current.addressLine1"]}</p>}
 
-            <input
-              name="addressLine2"
-              placeholder="Address Line 2"
-              value={formData.current.addressLine2}
-              onChange={(e) => handleChange(e, "current")}
-            />
+            <input name="addressLine2" placeholder="Address Line 2" value={formData.current.addressLine2} onChange={(e) => handleChange(e, "current")} />
 
-            <input
-              name="city"
-              placeholder="City *"
-              value={formData.current.city}
-              onChange={(e) => handleAlphaChange(e, "current")}
-            />
+            <input name="city" placeholder="City *" value={formData.current.city} onChange={(e) => handleAlphaChange(e, "current")} />
             {errors["current.city"] && <p className="error">{errors["current.city"]}</p>}
 
-            <input
-              name="state"
-              placeholder="State *"
-              value={formData.current.state}
-              onChange={(e) => handleAlphaChange(e, "current")}
-            />
+            <input name="state" placeholder="State *" value={formData.current.state} onChange={(e) => handleAlphaChange(e, "current")} />
             {errors["current.state"] && <p className="error">{errors["current.state"]}</p>}
 
-            <select
-              name="countryCode"
-              value={formData.current.countryCode}
-              onChange={(e) => handleChange(e, "current")}
-            >
-              {countries.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
+            <select name="countryCode" value={formData.current.countryCode} onChange={(e) => handleChange(e, "current")}>
+              {countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
             </select>
 
-            <input
-              name="postalCode"
-              placeholder="Postal Code *"
-              value={formData.current.postalCode}
-              onChange={(e) => handlePostalChange(e, "current")}
-            />
+            <input name="postalCode" placeholder="Postal Code *" value={formData.current.postalCode} onChange={(e) => handlePostalChange(e, "current")} />
             {errors["current.postalCode"] && <p className="error">{errors["current.postalCode"]}</p>}
           </div>
 
           <div className="address-block">
             <h3>Permanent Address</h3>
 
-            <input
-              type="checkbox"
-              checked={formData.sameAddress}
-              onChange={handleCheckbox}
-            /> Same as current
+            <input type="checkbox" checked={formData.sameAddress} onChange={handleCheckbox} /> Same as current
 
-            <input
-              name="addressLine1"
-              placeholder="Address Line 1*"
-              value={formData.permanent.addressLine1}
-              onChange={(e) => handleChange(e, "permanent")}
-              disabled={formData.sameAddress}
-            />
-              {errors["permanent.addressLine1"] && 
-             <p className="error">{errors["permanent.addressLine1"]}</p>}
+            <input name="addressLine1" placeholder="Address Line 1*" value={formData.permanent.addressLine1} onChange={(e) => handleChange(e, "permanent")} disabled={formData.sameAddress} />
+            {errors["permanent.addressLine1"] && <p className="error">{errors["permanent.addressLine1"]}</p>}
 
-            <input
-              name="addressLine2"
-              placeholder="Address Line 2"
-              value={formData.permanent.addressLine2}
-              onChange={(e) => handleChange(e, "permanent")}
-              disabled={formData.sameAddress}
-            />
+            <input name="addressLine2" placeholder="Address Line 2" value={formData.permanent.addressLine2} onChange={(e) => handleChange(e, "permanent")} disabled={formData.sameAddress} />
 
-            <input
-              name="city"
-              placeholder="City*"
-              value={formData.permanent.city}
-              onChange={(e) => handleAlphaChange(e, "permanent")}
-              disabled={formData.sameAddress}
-            />
-              {errors["permanent.city"] && 
-             <p className="error">{errors["permanent.city"]}</p>}
+            <input name="city" placeholder="City*" value={formData.permanent.city} onChange={(e) => handleAlphaChange(e, "permanent")} disabled={formData.sameAddress} />
+            {errors["permanent.city"] && <p className="error">{errors["permanent.city"]}</p>}
 
-            <input
-              name="state"
-              placeholder="State*"
-              value={formData.permanent.state}
-              onChange={(e) => handleAlphaChange(e, "permanent")}
-              disabled={formData.sameAddress}
-            />
-              {errors["permanent.state"] && 
-            <p className="error">{errors["permanent.state"]}</p>}
+            <input name="state" placeholder="State*" value={formData.permanent.state} onChange={(e) => handleAlphaChange(e, "permanent")} disabled={formData.sameAddress} />
+            {errors["permanent.state"] && <p className="error">{errors["permanent.state"]}</p>}
 
-            <select
-              name="countryCode"
-              value={formData.permanent.countryCode}
-              onChange={(e) => handleChange(e, "permanent")}
-              disabled={formData.sameAddress}
-            >
-              {countries.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
+            <select name="countryCode" value={formData.permanent.countryCode} onChange={(e) => handleChange(e, "permanent")} disabled={formData.sameAddress}>
+              {countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
             </select>
 
-            <input
-              name="postalCode"
-              placeholder="Postal Code*"
-              value={formData.permanent.postalCode}
-              onChange={(e) => handlePostalChange(e, "permanent")}
-              disabled={formData.sameAddress}
-            />
-              {errors["permanent.postalCode"] && 
-            <p className="error">{errors["permanent.postalCode"]}</p>}
+            <input name="postalCode" placeholder="Postal Code*" value={formData.permanent.postalCode} onChange={(e) => handlePostalChange(e, "permanent")} disabled={formData.sameAddress} />
+            {errors["permanent.postalCode"] && <p className="error">{errors["permanent.postalCode"]}</p>}
           </div>
         </div>
 
