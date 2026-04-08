@@ -84,15 +84,11 @@ form select:focus {
 }
 
 /* Checkbox container */
-.checkbox-container {
+.checkbox-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 15px 0;
-}
-
-.checkbox-container input {
-  width: auto;
+  gap: 2px;
+  margin: 5px 0 10px 0;
 }
 
 /* Button */
