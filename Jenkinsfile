@@ -70,41 +70,38 @@ pipeline {
             }
         }
 
-        stage('Deploy Backend to EC2') {
-            steps {
-                withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
-                    bat """
-                    
-                    REM Fix PEM permissions (Administrators)
-                    icacls "%PEM_FILE%" /inheritance:r
-                    icacls "%PEM_FILE%" /grant:r "Administrators:R"
+      stage('Deploy Backend to EC2') {
+    steps {
+        withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
+            bat """
 
-                     IF "%ROLLBACK_VERSION%"=="" (
+           
+            icacls "%PEM_FILE%" /inheritance:r
+            icacls "%PEM_FILE%" /grant:r "Administrators:R"
+
+            IF "%ROLLBACK_VERSION%"=="" (
                 echo Deploying NEW version
 
                 set VERSION=app-%BUILD_NUMBER%.jar
 
-                C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\User-app-0.0.1-SNAPSHOT.jar ec2-user@%EC2_IP%:/home/ec2-user/%VERSION%
+                REM Upload versioned jar
+                C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ^
+                User-app\\target\\User-app-0.0.1-SNAPSHOT.jar ^
+                ec2-user@%EC2_IP%:/home/ec2-user/%VERSION%
 
             ) ELSE (
                 echo Rolling back to %ROLLBACK_VERSION%
                 set VERSION=%ROLLBACK_VERSION%
             )
 
-                    REM Copy JAR
-                    C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\User-app-0.0.1-SNAPSHOT.jar ec2-user@%EC2_IP%:/home/ec2-user/app.jar
+            REM Switch symlink + restart app
+            C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% ^
+            "pkill -f app.jar || true && ln -sf %VERSION% app.jar && nohup java -jar app.jar > app.log 2>&1 &"
 
-                    REM Stop old app
-                    C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true"
-
-                    REM Start new app
-                    C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "nohup java -jar /home/ec2-user/app.jar > app.log 2>&1 &"
-
-                    """
-                }
-            }
+            """
         }
     }
+}
 
     post {
         success {
