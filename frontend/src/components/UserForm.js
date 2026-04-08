@@ -135,25 +135,27 @@ const UserForm = ({ onUserSaved }) => {
       newErrors["current.postalCode"] = "Postal code must be 5 digits";
     }
 
-    // ✅ FIXED: Permanent address validation
-    const isPermanentFilled =
-      formData.permanent.addressLine1 ||
-      formData.permanent.city ||
-      formData.permanent.state ||
-      formData.permanent.postalCode;
+    // ✅ FIX: respect sameAddress
+    if (!formData.sameAddress) {
+      const isPermanentFilled =
+        formData.permanent.addressLine1 ||
+        formData.permanent.city ||
+        formData.permanent.state ||
+        formData.permanent.postalCode;
 
-    if (isPermanentFilled) {
-      if (!formData.permanent.addressLine1.trim()) {
-        newErrors["permanent.addressLine1"] = "Address is required";
-      }
-      if (!formData.permanent.city.trim()) {
-        newErrors["permanent.city"] = "City is required";
-      }
-      if (!formData.permanent.state.trim()) {
-        newErrors["permanent.state"] = "State is required";
-      }
-      if (!/^\d{5}$/.test(formData.permanent.postalCode)) {
-        newErrors["permanent.postalCode"] = "Postal code must be 5 digits";
+      if (isPermanentFilled) {
+        if (!formData.permanent.addressLine1.trim()) {
+          newErrors["permanent.addressLine1"] = "Address is required";
+        }
+        if (!formData.permanent.city.trim()) {
+          newErrors["permanent.city"] = "City is required";
+        }
+        if (!formData.permanent.state.trim()) {
+          newErrors["permanent.state"] = "State is required";
+        }
+        if (!/^\d{5}$/.test(formData.permanent.postalCode)) {
+          newErrors["permanent.postalCode"] = "Postal code must be 5 digits";
+        }
       }
     }
 
@@ -173,18 +175,25 @@ const UserForm = ({ onUserSaved }) => {
       { ...formData.current, addressType: "CURRENT" }
     ];
 
-    // ✅ FIXED: Only send if fully complete
-    const isPermanentComplete =
-      formData.permanent.addressLine1 &&
-      formData.permanent.city &&
-      formData.permanent.state &&
-      /^\d{5}$/.test(formData.permanent.postalCode);
-
-    if (isPermanentComplete) {
+    // ✅ FIX: handle sameAddress correctly
+    if (formData.sameAddress) {
       addresses.push({
-        ...formData.permanent,
+        ...formData.current,
         addressType: "PERMANENT"
       });
+    } else {
+      const isPermanentComplete =
+        formData.permanent.addressLine1 &&
+        formData.permanent.city &&
+        formData.permanent.state &&
+        /^\d{5}$/.test(formData.permanent.postalCode);
+
+      if (isPermanentComplete) {
+        addresses.push({
+          ...formData.permanent,
+          addressType: "PERMANENT"
+        });
+      }
     }
 
     const payload = {
