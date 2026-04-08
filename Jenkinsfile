@@ -6,6 +6,10 @@ pipeline {
         EC2_IP = '43.205.212.99'
     }
 
+    parameters {
+        string(name: 'ROLLBACK_VERSION', defaultValue: '', description: 'Enter version like app-2.jar to rollback')
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -70,38 +74,30 @@ pipeline {
             }
         }
 
-      stage('Deploy Backend to EC2') {
-    steps {
-        withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
-            bat """
+        stage('Deploy Backend to EC2') {
+            steps {
+                withCredentials([file(credentialsId: 'ec2_cred_file', variable: 'PEM_FILE')]) {
+                    bat """
+                    REM Fix PEM permissions
+                    icacls "%PEM_FILE%" /inheritance:r
+                    icacls "%PEM_FILE%" /grant:r "%USERNAME%:R"
 
-           
-            icacls "%PEM_FILE%" /inheritance:r
-            icacls "%PEM_FILE%" /grant:r "Administrators:R"
+                    IF "%ROLLBACK_VERSION%"=="" (
+                        echo Deploying NEW version
+                        set VERSION=app-%BUILD_NUMBER%.jar
 
-            IF "%ROLLBACK_VERSION%"=="" (
-                echo Deploying NEW version
+                        C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no User-app\\target\\User-app-0.0.1-SNAPSHOT.jar ec2-user@%EC2_IP%:/home/ec2-user/%VERSION%
+                    ) ELSE (
+                        echo Rolling back to %ROLLBACK_VERSION%
+                        set VERSION=%ROLLBACK_VERSION%
+                    )
 
-                set VERSION=app-%BUILD_NUMBER%.jar
-
-                REM Upload versioned jar
-                C:\\Windows\\System32\\OpenSSH\\scp.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ^
-                User-app\\target\\User-app-0.0.1-SNAPSHOT.jar ^
-                ec2-user@%EC2_IP%:/home/ec2-user/%VERSION%
-
-            ) ELSE (
-                echo Rolling back to %ROLLBACK_VERSION%
-                set VERSION=%ROLLBACK_VERSION%
-            )
-
-            REM Switch symlink + restart app
-            C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% ^
-            "pkill -f app.jar || true && ln -sf %VERSION% app.jar && nohup java -jar app.jar > app.log 2>&1 &"
-
-            """
+                    C:\\Windows\\System32\\OpenSSH\\ssh.exe -i "%PEM_FILE%" -o StrictHostKeyChecking=no ec2-user@%EC2_IP% "pkill -f app.jar || true && ln -sf %VERSION% app.jar && nohup java -jar app.jar > app.log 2>&1 &"
+                    """
+                }
+            }
         }
     }
-}
 
     post {
         success {
