@@ -274,7 +274,7 @@ const UserForm = ({ onUserSaved }) => {
 
             <input
               name="addressLine1"
-              placeholder="Address *"
+              placeholder="Address Line 1*"
               value={formData.current.addressLine1}
               onChange={(e) => handleChange(e, "current")}
             />
@@ -340,6 +340,8 @@ const UserForm = ({ onUserSaved }) => {
               onChange={(e) => handleChange(e, "permanent")}
               disabled={formData.sameAddress}
             />
+              {errors["permanent.addressLine1"] && 
+             <p className="error">{errors["permanent.addressLine1"]}</p>}
 
             <input
               name="addressLine2"
@@ -356,6 +358,8 @@ const UserForm = ({ onUserSaved }) => {
               onChange={(e) => handleAlphaChange(e, "permanent")}
               disabled={formData.sameAddress}
             />
+              {errors["permanent.city"] && 
+             <p className="error">{errors["permanent.city"]}</p>}
 
             <input
               name="state"
@@ -364,6 +368,8 @@ const UserForm = ({ onUserSaved }) => {
               onChange={(e) => handleAlphaChange(e, "permanent")}
               disabled={formData.sameAddress}
             />
+              {errors["permanent.state"] && 
+            <p className="error">{errors["permanent.state"]}</p>}
 
             <select
               name="countryCode"
@@ -385,6 +391,8 @@ const UserForm = ({ onUserSaved }) => {
               onChange={(e) => handlePostalChange(e, "permanent")}
               disabled={formData.sameAddress}
             />
+              {errors["permanent.postalCode"] && 
+            <p className="error">{errors["permanent.postalCode"]}</p>}
           </div>
         </div>
 
