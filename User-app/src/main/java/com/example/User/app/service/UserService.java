@@ -32,6 +32,9 @@ public class UserService {
         if (request.getFirstName() == null || request.getLastName() == null) {
             throw new RuntimeException("Invalid input");
         }
+          if (userRepository.existsByEmail(request.getEmail())) {
+        throw new DuplicateEmailException("Please enter a unique email");
+    }
 
         // Create User
         User user = new User();
