@@ -1,6 +1,7 @@
 com\example\User\app\service\UserService.class
 com\example\User\app\dto\UserResponse.class
 com\example\User\app\repository\UserRepository.class
+com\example\User\app\exception\DuplicateEmailException.class
 com\example\User\app\exception\GlobalExceptionHandler.class
 com\example\User\app\entity\User.class
 com\example\User\app\dto\AddressRequest.class
