@@ -4,12 +4,19 @@ const BASE_URL = "http://43.205.212.99:8080/users";
 
 // CREATE USER
 export const saveUser = async (userData) => {
-  try {
+   try {
     const response = await axios.post(BASE_URL, userData);
     return response.data;
   } catch (error) {
     console.error("API Error:", error);
-    throw error.response?.data || "Error occurred";
+
+    // backend message 
+    const message =
+      error.response?.data?.message || // backend sends { message: "..." }
+      error.response?.data ||          
+      "Error occurred";
+
+    throw new Error(message); 
   }
 };
 
