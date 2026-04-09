@@ -6,6 +6,7 @@ import com.example.User.app.dto.UserResponse;
 import com.example.User.app.entity.Address;
 import com.example.User.app.entity.User;
 import com.example.User.app.repository.AddressRepository;
+import com.example.User.app.exception.DuplicateEmailException;
 import com.example.User.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class UserService {
             throw new RuntimeException("Invalid input");
         }
           if (userRepository.existsByEmail(request.getEmail())) {
-        throw new DuplicateEmailException("Please enter a unique email");
+        throw new DuplicateEmailException("Email exists, please enter a unique email");
     }
 
         // Create User
