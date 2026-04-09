@@ -23,12 +23,14 @@ public class UserController {
     // ✅ CREATE USER
     @PostMapping
     public ResponseEntity<String> createUser(@RequestBody UserRequest request) {
-        try {
-            return ResponseEntity.ok(userService.createUser(request));
-        } catch (Exception e) {
-            e.printStackTrace(); // VERY IMPORTANT
-            return ResponseEntity.status(500).body("Error: " + e.getMessage());
-        }
+       try {
+        return ResponseEntity.ok(userService.createUser(request));
+    } catch (DuplicateEmailException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()); // 400
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+    }
     }
 
     // ✅ GET LATEST 5 USERS
