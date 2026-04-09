@@ -38,6 +38,7 @@ const UserForm = ({ onUserSaved }) => {
 
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
+  const [backendEmailError, setBackendEmailError] = useState(""); 
 
   const handleAlphaChange = (e, type = null) => {
     const { name, value } = e.target;
@@ -219,6 +220,7 @@ if (!formData.sameAddress) {
     try {
       await saveUser(payload);
       setMessage("✅ User saved");
+       setBackendEmailError("");
 
       setFormData({
         firstName: "",
@@ -246,13 +248,13 @@ if (!formData.sameAddress) {
       setErrors({});
       if (onUserSaved) onUserSaved();
     } catch (err) {
-      setMessage("Error saving user");
+      setBackendEmailError(err.message || "Error saving user");
     }
   };
 
   return (
     <div>
-      <h2>User Register</h2>
+      <h2>User Registeration</h2>
 
       <form onSubmit={handleSubmit}>
 
@@ -279,6 +281,7 @@ if (!formData.sameAddress) {
           onChange={(e) => handleChange(e)}
         />
         {errors.email && <p className="error">{errors.email}</p>}
+        {backendEmailError && <p className="error">{backendEmailError}</p>}
 
         <div className="address-container">
 
